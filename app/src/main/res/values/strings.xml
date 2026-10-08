@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Verse Reminder</string>
+    <string name="widget_name">Ayat Harian</string>
+    <string name="widget_description">Menampilkan ayat Alkitab harian langsung di home screen</string>
+    <string name="notification_channel_name">Pengingat Ayat Alkitab</string>
+    <string name="notification_channel_desc">Notifikasi jadwal ayat Alkitab harian</string>
+    <string name="action_bookmark">Simpan</string>
+    <string name="action_share">Bagikan</string>
+    <string name="action_refresh">Ganti Ayat</string>
+</resources>
