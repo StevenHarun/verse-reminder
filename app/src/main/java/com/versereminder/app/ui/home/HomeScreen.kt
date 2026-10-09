@@ -30,7 +30,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import com.versereminder.app.ui.components.SmoothScrollToTopButton
+import com.versereminder.app.ui.components.smoothScrollbar
+import com.versereminder.app.ui.components.verticalFadingEdges
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -172,18 +176,27 @@ fun HomeScreen(
     // Bible translation dropdown state on the home screen
     var showVersionMenu by remember { mutableStateOf(false) }
 
+    val listState = rememberLazyListState()
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(innerPadding)
         ) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalFadingEdges(topFadeHeight = 16.dp, bottomFadeHeight = 24.dp)
+                    .smoothScrollbar(state = listState),
+                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 96.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
             // FIGMA HEADER: Atmospheric Eyebrow + Noto Serif Title + Action Buttons (Theme Toggle & Bell)
-            item {
+            item(key = "home_header", contentType = "header") {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -252,7 +265,7 @@ fun HomeScreen(
             }
 
             // SEARCH BAR COMPONENT
-            item {
+            item(key = "home_search_bar", contentType = "search_bar") {
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { viewModel.onSearchQueryChanged(it) },
@@ -299,7 +312,7 @@ fun HomeScreen(
             }
 
             if (searchQuery.isNotBlank()) {
-                item {
+                item(key = "search_results_header", contentType = "header") {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -321,7 +334,7 @@ fun HomeScreen(
                 }
 
                 if (searchResults.isEmpty()) {
-                    item {
+                    item(key = "search_results_empty", contentType = "empty_state") {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),
@@ -355,7 +368,8 @@ fun HomeScreen(
                 } else {
                     items(
                         items = searchResults,
-                        key = { it.id }
+                        key = { it.id },
+                        contentType = { "verse_card" }
                     ) { verse ->
                         VerseCard(
                             verse = verse,
@@ -373,7 +387,7 @@ fun HomeScreen(
                 }
             } else {
                 // SECTION 1: DAILY VERSE (Figma: "Ayat hari ini" | "TB • 06:00")
-                item {
+                item(key = "daily_verse_section", contentType = "daily_verse") {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -621,7 +635,7 @@ fun HomeScreen(
             }
 
             // SECTION 1.5: RENCANA BACAAN HARIAN
-            item {
+            item(key = "reading_plan_section", contentType = "reading_plan") {
                 ReadingPlanHomeBanner(
                     activePlan = activePlan,
                     progress = activeProgress,
@@ -631,7 +645,7 @@ fun HomeScreen(
             }
 
             // SECTION 2: TEMA RENUNGAN (Figma: "Tema renungan" -> "Semua", "Pengharapan", "Damai", "Kekuatan")
-            item {
+            item(key = "category_chips_section", contentType = "category_chips") {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
                         text = "Tema renungan",
@@ -686,7 +700,7 @@ fun HomeScreen(
             }
 
             // SECTION 3: WIDGET PREVIEW (Figma: "Widget layar utama" | "Pratinjau interaktif")
-            item {
+            item(key = "widget_preview_section", contentType = "widget_preview") {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -804,7 +818,7 @@ fun HomeScreen(
 
             // SECTION 4: BROWSE VERSES LIST (Available at all times)
             if (categoryVerses.isNotEmpty()) {
-                item {
+                item(key = "browse_header_section", contentType = "browse_header") {
                     Text(
                         text = if (selectedCategory == VerseCategory.ALL) "Daftar Ayat Inspiratif" else "Ayat Kategori: ${selectedCategory.displayName}",
                         style = MaterialTheme.typography.titleMedium.copy(fontSize = 13.sp),
@@ -814,7 +828,8 @@ fun HomeScreen(
                 }
                 items(
                     items = categoryVerses,
-                    key = { it.id }
+                    key = { it.id },
+                    contentType = { "verse_card" }
                 ) { verse ->
                     VerseCard(
                         verse = verse,
@@ -832,6 +847,8 @@ fun HomeScreen(
             }
         }
     }
+    SmoothScrollToTopButton(listState = listState)
+}
 }
 
     // Modal Dialog: Bagikan Firman Hari Ini (Story / Post Image & Text)

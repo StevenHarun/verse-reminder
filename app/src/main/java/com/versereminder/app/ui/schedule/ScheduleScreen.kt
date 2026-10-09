@@ -17,6 +17,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import com.versereminder.app.ui.components.SmoothScrollToTopButton
+import com.versereminder.app.ui.components.smoothScrollbar
+import com.versereminder.app.ui.components.verticalFadingEdges
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -87,18 +91,27 @@ fun ScheduleScreen(
 
     val activeCount = schedules.count { it.isEnabled }
 
+    val listState = rememberLazyListState()
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(innerPadding)
         ) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalFadingEdges(topFadeHeight = 16.dp, bottomFadeHeight = 24.dp)
+                    .smoothScrollbar(state = listState),
+                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 96.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
             // Figma Header: Eyebrow + Noto Serif Title + Calendar Action Button
-            item {
+            item(key = "schedule_header", contentType = "header") {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -149,7 +162,7 @@ fun ScheduleScreen(
             }
 
             // SECTION 1: PENGINGAT DEFAULT (Figma: "Pengingat default" | "3 aktif")
-            item {
+            item(key = "schedule_default_section", contentType = "default_section") {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -251,7 +264,7 @@ fun ScheduleScreen(
             }
 
             // SECTION 2: TAMBAH WAKTU KHUSUS (Figma: "Tambah waktu khusus" | "TimePicker")
-            item {
+            item(key = "schedule_timepicker_section", contentType = "timepicker_section") {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -349,7 +362,7 @@ fun ScheduleScreen(
             // SECTION 3: ADDITIONAL SCHEDULES LIST
             val customSchedules = schedules.drop(3)
             if (customSchedules.isNotEmpty()) {
-                item {
+                item(key = "schedule_custom_header", contentType = "custom_header") {
                     Text(
                         text = "Jadwal Tambahan (${customSchedules.size})",
                         style = MaterialTheme.typography.titleMedium.copy(fontSize = 13.sp),
@@ -358,7 +371,11 @@ fun ScheduleScreen(
                     )
                 }
 
-                items(customSchedules, key = { it.id }) { schedule ->
+                items(
+                    items = customSchedules,
+                    key = { it.id },
+                    contentType = { "custom_schedule_card" }
+                ) { schedule ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
@@ -416,7 +433,9 @@ fun ScheduleScreen(
                 }
             }
         }
+        SmoothScrollToTopButton(listState = listState)
     }
+}
 
     if (showDialog) {
         ScheduleDialog(

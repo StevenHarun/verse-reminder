@@ -22,6 +22,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import com.versereminder.app.ui.components.SmoothScrollToTopButton
+import com.versereminder.app.ui.components.smoothScrollbar
+import com.versereminder.app.ui.components.verticalFadingEdges
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -84,18 +88,27 @@ fun HistoryScreen(
     val fontType by viewModel.fontType.collectAsState()
     var showClearDialog by remember { mutableStateOf(false) }
 
+    val listState = rememberLazyListState()
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(innerPadding)
         ) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalFadingEdges(topFadeHeight = 16.dp, bottomFadeHeight = 24.dp)
+                    .smoothScrollbar(state = listState),
+                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 96.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
             // Figma Header: Eyebrow + Noto Serif Title + Action Button
-            item {
+            item(key = "history_header", contentType = "header") {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -144,7 +157,7 @@ fun HistoryScreen(
             }
 
             // SECTION 1: OFFLINE AVAILABILITY SUMMARY CARD (Figma Spec)
-            item {
+            item(key = "history_summary_card", contentType = "summary_card") {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(18.dp),
@@ -225,7 +238,7 @@ fun HistoryScreen(
 
             // SECTION 2: TIMELINE LIST
             if (historyItems.isEmpty()) {
-                item {
+                item(key = "history_empty_state", contentType = "empty_state") {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
@@ -235,7 +248,7 @@ fun HistoryScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(32.dp),
+                                .padding(36.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
@@ -264,7 +277,7 @@ fun HistoryScreen(
                     }
                 }
             } else {
-                item {
+                item(key = "history_timeline_header", contentType = "timeline_header") {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
@@ -285,7 +298,11 @@ fun HistoryScreen(
                     }
                 }
 
-                itemsIndexed(items = historyItems, key = { _, item -> item.historyId }) { index, item ->
+                itemsIndexed(
+                    items = historyItems,
+                    key = { _, item -> item.historyId },
+                    contentType = { _, _ -> "timeline_item" }
+                ) { index, item ->
                     FigmaHistoryTimelineItem(
                         item = item,
                         bibleVersion = bibleVersion,
@@ -296,7 +313,9 @@ fun HistoryScreen(
                 }
             }
         }
+        SmoothScrollToTopButton(listState = listState)
     }
+}
 
     if (showClearDialog) {
         AlertDialog(

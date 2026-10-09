@@ -16,7 +16,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import com.versereminder.app.ui.components.SmoothScrollToTopButton
+import com.versereminder.app.ui.components.smoothScrollbar
+import com.versereminder.app.ui.components.verticalFadingEdges
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -102,18 +106,27 @@ fun BookmarkScreen(
         matchesQuery && matchesCategory && matchesCustom
     }
 
+    val listState = rememberLazyListState()
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(innerPadding)
         ) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalFadingEdges(topFadeHeight = 16.dp, bottomFadeHeight = 24.dp)
+                    .smoothScrollbar(state = listState),
+                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 96.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
             // Figma Header: Eyebrow + Noto Serif Title + Add Custom Verse & Search Action Buttons
-            item {
+            item(key = "bookmark_header", contentType = "header") {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -183,7 +196,7 @@ fun BookmarkScreen(
 
             // Search Bar if expanded
             if (showSearchBar) {
-                item {
+                item(key = "bookmark_search_bar", contentType = "search_bar") {
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
@@ -196,7 +209,7 @@ fun BookmarkScreen(
             }
 
             // SECTION 1: COLLECTION SUMMARY CARD (Figma: "[Count] ayat" | "Tersedia offline" | "Tersinkron")
-            item {
+            item(key = "bookmark_summary_card", contentType = "summary_card") {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(18.dp),
@@ -255,7 +268,7 @@ fun BookmarkScreen(
             }
 
             // SECTION 2: CATEGORY FILTER CHIPS
-            item {
+            item(key = "bookmark_filter_chips", contentType = "filter_chips") {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         text = "Filter Kategori",
@@ -351,7 +364,7 @@ fun BookmarkScreen(
 
             // SECTION 3: SAVED VERSES LIST
             if (filteredBookmarks.isEmpty()) {
-                item {
+                item(key = "bookmark_empty_state", contentType = "empty_state") {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -372,7 +385,11 @@ fun BookmarkScreen(
                     }
                 }
             } else {
-                items(items = filteredBookmarks, key = { it.id }) { verse ->
+                items(
+                    items = filteredBookmarks,
+                    key = { it.id },
+                    contentType = { "verse_card" }
+                ) { verse ->
                     VerseCard(
                         verse = verse,
                         bibleVersion = bibleVersion,
@@ -388,7 +405,9 @@ fun BookmarkScreen(
                 }
             }
         }
+        SmoothScrollToTopButton(listState = listState)
     }
+}
 
     // DIALOG: ADD CUSTOM VERSE
     if (showAddDialog) {

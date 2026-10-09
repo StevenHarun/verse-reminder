@@ -21,6 +21,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import com.versereminder.app.ui.components.smoothScrollbar
+import com.versereminder.app.ui.components.verticalFadingEdges
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -287,10 +289,13 @@ fun ReadingPlanSelectionDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                val plansScrollState = rememberScrollState()
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .verticalScroll(rememberScrollState()),
+                        .verticalFadingEdges(topFadeHeight = 12.dp, bottomFadeHeight = 16.dp)
+                        .smoothScrollbar(state = plansScrollState)
+                        .verticalScroll(plansScrollState),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     plans.forEach { plan ->
@@ -524,10 +529,13 @@ fun ReadingPlanDetailDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Scrollable Content Area: Title + Verse Box + Devotional + Prayer
+                val devotionalScrollState = rememberScrollState()
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .verticalScroll(rememberScrollState()),
+                        .verticalFadingEdges(topFadeHeight = 12.dp, bottomFadeHeight = 16.dp)
+                        .smoothScrollbar(state = devotionalScrollState)
+                        .verticalScroll(devotionalScrollState),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     // Title of the day
